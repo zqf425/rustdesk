@@ -471,11 +471,11 @@ class FolderView : Reactor.Component {
         <tbody> 
           {rows}
         </tbody>
-        <popup>
-          <menu.context id={id}>
+        <div .popup-panel>
+          <menu id={id}>
             <li #switch-hidden class={this.show_hidden ? "selected" : ""}><span>{svg_checkmark}</span>{translate('Show Hidden Files')}</li>
           </menu>
-        </popup>
+        </div>
       </table>;
     }
 

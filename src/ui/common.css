@@ -490,3 +490,46 @@ div.user-session select {
   color: color(text);
   padding-left: 0.5em;
 }
+
+/* Inline dropdown panels (engine popup windows are broken on macOS 26+) */
+.popup-panel {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    min-width: 160px;
+    max-height: 85%;
+    overflow-y: auto;
+    background: color(bg);
+    color: color(text);
+    border: color(border) solid 1px;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    padding: 4px 0;
+}
+.popup-panel > menu {
+    display: block;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+.popup-panel menu li {
+    display: block;
+    padding: 4px 14px 4px 10px;
+    white-space: nowrap;
+}
+.popup-panel menu li:hover {
+    background: rgba(0,0,0,0.08);
+}
+.popup-panel menu li > span {
+    display: inline-block;
+    width: 14px;
+    visibility: hidden;
+}
+.popup-panel menu li.selected > span {
+    visibility: visible;
+}
+.popup-panel .separator {
+    border-top: 1px solid color(border);
+    margin: 4px 8px;
+}

@@ -511,8 +511,8 @@ class MyIdMenu: Reactor.Component {
 
     function renderPop() {
         var accountLabel = handler.get_local_option("access_token") ? getAccountLabelWithHandle() : '';
-        return <popup>
-            <menu.context #config-options>
+        return <div .popup-panel>
+            <menu #config-options>
                 {!disable_settings && <li #enable-keyboard><span>{svg_checkmark}</span>{translate('Enable keyboard/mouse')}</li>}
                 {!disable_settings && <li #enable-clipboard><span>{svg_checkmark}</span>{translate('Enable clipboard')}</li>}
                 {!disable_settings && <li #enable-file-transfer><span>{svg_checkmark}</span>{translate('Enable file transfer')}</li>}
@@ -549,7 +549,7 @@ class MyIdMenu: Reactor.Component {
                 {disable_installation ? "" : <li #allow-auto-update><span>{svg_checkmark}</span>{translate('Auto update')}</li>} 
                 <li #about>{translate('About')} {" "}{handler.get_app_name()}</li>
             </menu>
-        </popup>;
+        </div>;
     }
 
     event click $(svg#menu) (_, me) {
@@ -561,7 +561,7 @@ class MyIdMenu: Reactor.Component {
         this.toggleMenuState();
         if (direct_server) direct_server.update();
         var menu = this.$(menu#config-options);
-        this.$(svg#menu).popup(menu);
+        showDropdown(this.$(svg#menu), menu);
     }
 
     event click $(li#login) () {
@@ -1074,7 +1074,7 @@ class PasswordArea: Reactor.Component {
         var approve_mode= handler.get_option('approve-mode');
         var show_password = approve_mode != 'click';
         var has_local_password = handler.is_local_permanent_password_set();
-        return <popup><menu.context #edit-password-context>
+        return <div .popup-panel><menu #edit-password-context>
             <li #approve-mode-password><span>{svg_checkmark}</span>{translate('Accept sessions via password')}</li>
             <li #approve-mode-click><span>{svg_checkmark}</span>{translate('Accept sessions via click')}</li>
             <li #approve-mode-both><span>{svg_checkmark}</span>{translate('Accept sessions via both')}</li>
@@ -1088,7 +1088,7 @@ class PasswordArea: Reactor.Component {
             { !show_password ? '' : <TemporaryPasswordLengthMenu /> }
             <div .separator />
             <li #tfa><span>{svg_checkmark}</span>{translate('enable-2fa-title')}</li>
-        </menu></popup>;
+        </menu></div>;
     }
 
     function toggleMenuState() {
@@ -1131,7 +1131,7 @@ class PasswordArea: Reactor.Component {
         var show_password = approve_mode != 'click';
         if(show_password && temporaryPasswordLengthMenu) temporaryPasswordLengthMenu.update({show: true });
         var menu = $(menu#edit-password-context);        
-        me.popup(menu);
+        showDropdown(me, menu);
     }
 
     event click $(li#set-password) {
@@ -1406,7 +1406,7 @@ function showSettings() {
     var anchor = $(#open-settings);
     if (!anchor) anchor = myIdMenu.$(svg#menu);
     // show immediately at button, then update menu state asynchronously
-    anchor.popup(menu);
+    showDropdown(anchor, menu);
     self.timer(1ms, function() {
         audioInputMenu.update({ show: true });
         myIdMenu.toggleMenuState();

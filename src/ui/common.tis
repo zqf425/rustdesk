@@ -465,3 +465,86 @@ class MultipleSessionComponent extends Reactor.Component {
         </div>;
     }
 }
+
+// ---- Inline dropdown panels ----
+// Sciter 4.4.8 engine popup windows fail to show on macOS 26+ (el.popup()
+// enters a modal loop but never creates the popup window). These helpers
+// show <div .popup-panel> menus inside the window instead.
+var dropdownState = { panel: null, anchor: null, toggle: false };
+
+function closeDropdownPanels() {
+    dropdownState.panel = null;
+    dropdownState.anchor = null;
+    for (var el in $$(.popup-panel)) el.style#display = "none";
+}
+
+function dropdownContains(el) {
+    while (el) {
+        var cls = el.attributes ? el.attributes["class"] : null;
+        if (cls && cls.indexOf("popup-panel") >= 0) return true;
+        el = el.parent;
+    }
+    return false;
+}
+
+function isChildOf(el, ancestor) {
+    while (el) {
+        if (el === ancestor) return true;
+        el = el.parent;
+    }
+    return false;
+}
+
+function showDropdown(anchor, panel) {
+    if (!anchor || !panel) return;
+    if (dropdownState.toggle && dropdownState.panel === panel) {
+        // mousedown on the same anchor just closed it; keep closed (toggle)
+        dropdownState.toggle = false;
+        dropdownState.panel = null;
+        dropdownState.anchor = null;
+        return;
+    }
+    closeDropdownPanels();
+    var ax = anchor.box(#left, #border, #view);
+    var ay = anchor.box(#top, #border, #view);
+    var ah = anchor.box(#height, #border);
+    panel.style#display = "block";
+    var pw = panel.box(#width, #border);
+    var ph = panel.box(#height, #border);
+    var vw = self.box(#width, #border);
+    var vh = self.box(#height, #border);
+    var x = ax;
+    var y = ay + ah + 2;
+    if (x + pw > vw - 4) x = vw - pw - 4;
+    if (x < 0) x = 0;
+    if (y + ph > vh - 4 && ay - ph - 2 > 0) y = ay - ph - 2;
+    panel.style#left = px(x);
+    panel.style#top = px(y);
+    dropdownState.panel = panel;
+    dropdownState.anchor = anchor;
+    dropdownState.toggle = false;
+}
+
+try {
+    self.subscribe("mousedown", function(evt) {
+        var t = evt.target;
+        if (dropdownState.anchor && t && isChildOf(t, dropdownState.anchor)) {
+            dropdownState.toggle = true;
+        } else {
+            dropdownState.toggle = false;
+        }
+        if (!t || !dropdownContains(t)) closeDropdownPanels();
+    });
+    self.subscribe("click", function(evt) {
+        var t = evt.target;
+        var li = null;
+        var p = t;
+        while (p) {
+            if (p.tag == "li") { li = p; break; }
+            p = p.parent;
+        }
+        if (li && dropdownContains(li)) closeDropdownPanels();
+    });
+} catch(e) {
+    stdout.println("dropdown init failed: " + e);
+}

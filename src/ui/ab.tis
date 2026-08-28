@@ -28,16 +28,16 @@ class AddressBook: Reactor.Component
         var peers = this.getPeers();
         var me = this;
         return <div .app #ab style="size:*">
-            <popup>
-                <menu.context #ab-context>
+            <div .popup-panel>
+                <menu #ab-context>
                     <li #add-id>{translate('Add ID')}</li>
                     <li #add-tag>{translate('Add Tag')}</li>
                     <li #unselect-tags>{translate('Unselect all tags')}</li>
                 </menu>
-                <menu.context #tag-context>
+                <menu #tag-context>
                     <li #remove-tag>{translate('Remove')}</li>
                 </menu>
-            </popup>
+            </div>
             <div .left-pane>
                 <div style="padding: 0; padding-bottom: 1em" #tags-label>{translate('Tags')}{svg_menu}</div>
                 <div #tags>
@@ -57,7 +57,7 @@ class AddressBook: Reactor.Component
     event mouseup $(#tags span) (evt, me) { 
         if(evt.propButton) {
             current_menu_tag = me.text;
-            me.popup($(#tag-context));
+            showDropdown(me, $(#tag-context));
             return true;
         }
     }
@@ -71,7 +71,7 @@ class AddressBook: Reactor.Component
     }
 
     event click $(#tags-label svg#menu) (_, me) {
-        me.popup($(#ab-context));
+        showDropdown(me, $(#ab-context));
     }
     
     event click $(#add-id) (_, __) {
@@ -322,8 +322,8 @@ class SessionList: Reactor.Component {
         var me = this;
         sessions = sessions.map(function(x) { return me.getSession(x); });
         return <div .recent-sessions-content key={sessions.length}>
-            <popup>
-                <menu.context #remote-context>
+            <div .popup-panel>
+                <menu #remote-context>
                     <li #connect>{translate('Connect')}</li>
                     <li #transfer>{translate('Transfer file')}</li>
                     <li #tunnel>{translate('TCP tunneling')}</li>
@@ -339,7 +339,7 @@ class SessionList: Reactor.Component {
                     {(!this.type || this.type == "fav") && <li #remove-fav>{translate('Remove from Favorites')}</li>}
                     {this.type == "ab" && <li #edit-tag>{translate('Edit Tag')}</li>}
                 </menu>
-            </popup>
+            </div>
             {sessions}
         </div>;
     }
@@ -420,7 +420,7 @@ class SessionList: Reactor.Component {
             }
           }
         }
-        me.popup(menu);
+        showDropdown(me, menu);
     }
 
     event click $(menu#remote-context li) (evt, me) {

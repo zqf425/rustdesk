@@ -76,7 +76,13 @@ impl Capturer {
                 display,
                 stopped,
             }),
-            x => Err(x),
+            x => {
+                eprintln!(
+                    "CGDisplayStreamStart failed with error {:?} (code {}), likely missing Screen Recording permission",
+                    x, x as i32
+                );
+                Err(x)
+            }
         }
     }
 

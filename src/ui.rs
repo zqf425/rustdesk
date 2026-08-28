@@ -176,13 +176,21 @@ pub fn start(args: &mut [String]) {
         frame.load_html(html.as_bytes(), Some(page));
     }
     #[cfg(not(feature = "inline"))]
-    frame.load_file(&format!(
-        "file://{}/src/ui/{}",
-        std::env::current_dir()
+    {
+        // Resolve UI files relative to the executable so the app works when
+        // launched from a .app bundle (where current_dir() is "/").
+        let base_dir = std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+            .or_else(|| std::env::current_dir().ok())
             .map(|c| c.display().to_string())
-            .unwrap_or("".to_owned()),
-        page
-    ));
+            .unwrap_or_default();
+        frame.load_file(&format!(
+            "file://{}/src/ui/{}",
+            base_dir,
+            page
+        ));
+    }
     let hide_cm = *cm::HIDE_CM.lock().unwrap();
     if !args.is_empty() && args[0] == "--cm" && hide_cm {
         // run_app calls expand(show) + run_loop, we use collapse(hide) + run_loop instead to create a hidden window

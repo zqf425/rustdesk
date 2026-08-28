@@ -495,8 +495,20 @@ function isChildOf(el, ancestor) {
     return false;
 }
 
+// 允许传入 menu 或其内部元素，向上找到 .popup-panel 容器
+function findDropdownPanel(el) {
+    while (el) {
+        var cls = el.attributes ? el.attributes["class"] : null;
+        if (cls && cls.indexOf("popup-panel") >= 0) return el;
+        el = el.parent;
+    }
+    return null;
+}
+
 function showDropdown(anchor, panel) {
     if (!anchor || !panel) return;
+    panel = findDropdownPanel(panel);
+    if (!panel) return;
     if (dropdownState.toggle && dropdownState.panel === panel) {
         // mousedown on the same anchor just closed it; keep closed (toggle)
         dropdownState.toggle = false;

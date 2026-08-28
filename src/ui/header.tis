@@ -476,7 +476,7 @@ function toggleMenuState() {
     if (!q) q = "balanced";
     values.push(q);
     var s = handler.get_view_style();
-    if (!s) s = "original";
+    if (!s) s = "shrink";
     values.push(s);
     var k = handler.get_keyboard_mode();
     values.push(k);

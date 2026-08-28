@@ -247,6 +247,13 @@ fn main() {
     find_package("libyuv");
     gen_vcpkg_package("libvpx", "vpx_ffi.h", "vpx_ffi.rs", "^[vV].*");
     gen_vcpkg_package("aom", "aom_ffi.h", "aom_ffi.rs", "^(aom|AOM|OBU|AV1).*");
+    // homebrew's aom is built with VMAF support; link libvmaf to resolve vmaf_* symbols
+    if std::env::var("VCPKG_ROOT").is_err()
+        && cfg!(target_os = "macos")
+        && std::env::var("CARGO_CFG_TARGET_ARCH").as_deref() == Ok("aarch64")
+    {
+        find_package("libvmaf");
+    }
     gen_vcpkg_package("libyuv", "yuv_ffi.h", "yuv_ffi.rs", ".*");
     // ffmpeg();
 

@@ -120,7 +120,7 @@ pub const SCRAP_X11_REQUIRED: &str = "x11 expected";
 pub const SCRAP_X11_REF_URL: &str = "https://rustdesk.com/docs/en/manual/linux/#x11-required";
 
 #[cfg(not(target_os = "linux"))]
-pub const AUDIO_BUFFER_MS: usize = 3000;
+pub const AUDIO_BUFFER_MS: usize = 1000;
 
 #[cfg(feature = "flutter")]
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1430,25 +1430,32 @@ impl AudioHandler {
                 {
                     let sample_rate0 = self.sample_rate.0;
                     let sample_rate = self.sample_rate.1;
-                    let mut buffer = buffer[0..n].to_owned();
-                    if sample_rate != sample_rate0 {
-                        buffer = crate::audio_resample(
-                            &buffer[0..n],
-                            sample_rate0,
-                            sample_rate,
-                            channels,
-                        );
+                    // Fast path: when no resampling or rechanneling is needed,
+                    // pass the decoded samples directly to the audio buffer
+                    // without an intermediate heap allocation (to_owned).
+                    if sample_rate == sample_rate0 && self.channels == self.device_channel {
+                        self.audio_buffer.append_pcm(&buffer[0..n]);
+                    } else {
+                        let mut pcm = buffer[0..n].to_owned();
+                        if sample_rate != sample_rate0 {
+                            pcm = crate::audio_resample(
+                                &pcm[0..n],
+                                sample_rate0,
+                                sample_rate,
+                                channels,
+                            );
+                        }
+                        if self.channels != self.device_channel {
+                            pcm = crate::audio_rechannel(
+                                pcm,
+                                sample_rate,
+                                sample_rate,
+                                self.channels,
+                                self.device_channel,
+                            );
+                        }
+                        self.audio_buffer.append_pcm(&pcm);
                     }
-                    if self.channels != self.device_channel {
-                        buffer = crate::audio_rechannel(
-                            buffer,
-                            sample_rate,
-                            sample_rate,
-                            self.channels,
-                            self.device_channel,
-                        );
-                    }
-                    self.audio_buffer.append_pcm(&buffer);
                 }
                 #[cfg(target_os = "linux")]
                 {

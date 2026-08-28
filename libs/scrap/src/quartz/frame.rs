@@ -42,11 +42,16 @@ impl Frame {
         unsafe {
             let plane0 = IOSurfaceGetBaseAddressOfPlane(self.surface, 0);
             self.bgra_stride = IOSurfaceGetBytesPerRowOfPlane(self.surface, 0);
-            self.bgra.resize(self.bgra_stride * h, 0);
+            let size = self.bgra_stride * h;
+            // Use reserve + set_len instead of resize(_, 0) to avoid zero-filling
+            // the entire buffer immediately before overwriting it with copy_nonoverlapping.
+            // For a 1080p BGRA frame this saves ~8MB of unnecessary memset per frame.
+            self.bgra.reserve(size);
+            self.bgra.set_len(size);
             std::ptr::copy_nonoverlapping(
                 plane0 as _,
                 self.bgra.as_mut_ptr(),
-                self.bgra_stride * h,
+                size,
             );
         }
     }

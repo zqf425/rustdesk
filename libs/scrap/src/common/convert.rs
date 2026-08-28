@@ -65,7 +65,13 @@ pub fn convert_to_yuv(
         | (crate::Pixfmt::RGB565LE, crate::Pixfmt::I420) => {
             let dst_stride_y = dst_fmt.stride[0];
             let dst_stride_uv = dst_fmt.stride[1];
-            dst.resize(dst_fmt.h * dst_stride_y * 2, 0); // waste some memory to ensure memory safety
+            // Over-allocate to ensure memory safety (U/V planes fit within bounds),
+            // but use reserve+set_len instead of resize(_, 0) to avoid zero-filling
+            // the entire buffer every frame when it is immediately overwritten by
+            // the libyuv conversion call below.
+            let dst_size = dst_fmt.h * dst_stride_y * 2;
+            dst.reserve(dst_size);
+            unsafe { dst.set_len(dst_size); }
             let dst_y = dst.as_mut_ptr();
             let dst_u = dst[dst_fmt.u..].as_mut_ptr();
             let dst_v = dst[dst_fmt.v..].as_mut_ptr();
@@ -93,10 +99,9 @@ pub fn convert_to_yuv(
         | (crate::Pixfmt::RGB565LE, crate::Pixfmt::NV12) => {
             let dst_stride_y = dst_fmt.stride[0];
             let dst_stride_uv = dst_fmt.stride[1];
-            dst.resize(
-                align(dst_fmt.h) * (align(dst_stride_y) + align(dst_stride_uv / 2)),
-                0,
-            );
+            let dst_size = align(dst_fmt.h) * (align(dst_stride_y) + align(dst_stride_uv / 2));
+            dst.reserve(dst_size);
+            unsafe { dst.set_len(dst_size); }
             let dst_y = dst.as_mut_ptr();
             let dst_uv = dst[dst_fmt.u..].as_mut_ptr();
             let (input, input_stride) = match src_pixfmt {
@@ -140,11 +145,10 @@ pub fn convert_to_yuv(
             let dst_stride_y = dst_fmt.stride[0];
             let dst_stride_u = dst_fmt.stride[1];
             let dst_stride_v = dst_fmt.stride[2];
-            dst.resize(
-                align(dst_fmt.h)
-                    * (align(dst_stride_y) + align(dst_stride_u) + align(dst_stride_v)),
-                0,
-            );
+            let dst_size = align(dst_fmt.h)
+                    * (align(dst_stride_y) + align(dst_stride_u) + align(dst_stride_v));
+            dst.reserve(dst_size);
+            unsafe { dst.set_len(dst_size); }
             let dst_y = dst.as_mut_ptr();
             let dst_u = dst[dst_fmt.u..].as_mut_ptr();
             let dst_v = dst[dst_fmt.v..].as_mut_ptr();

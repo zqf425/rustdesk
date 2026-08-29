@@ -520,11 +520,14 @@ function showDropdown(anchor, panel) {
     var ax = anchor.box(#left, #border, #view);
     var ay = anchor.box(#top, #border, #view);
     var ah = anchor.box(#height, #border);
-    panel.style#display = "block";
-    var pw = panel.box(#width, #border);
-    var ph = panel.box(#height, #border);
     var vw = self.box(#width, #border);
     var vh = self.box(#height, #border);
+    panel.style#display = "block";
+    // Sciter 把百分比 max-height 按父容器（如工具栏）解析而非窗口，
+    // 这里必须显式按窗口高度设置像素值，否则面板会被压扁
+    panel.style#max-height = px(vh - 16);
+    var pw = panel.box(#width, #border);
+    var ph = panel.box(#height, #border);
     var x = ax;
     var y = ay + ah + 2;
     if (x + pw > vw - 4) x = vw - pw - 4;

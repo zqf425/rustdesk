@@ -497,7 +497,8 @@ div.user-session select {
     position: fixed;
     z-index: 1000;
     min-width: 160px;
-    max-height: 85%;
+    /* max-height 由 showDropdown() 按窗口高度以像素显式设置，
+       百分比会被 Sciter 按父容器高度解析导致面板被压扁 */
     overflow-y: auto;
     background: color(bg);
     color: color(text);

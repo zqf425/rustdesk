@@ -371,6 +371,8 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("Please wait for confirmation of UAC...", "请等待对方确认 UAC..."),
         ("elevated_foreground_window_tip", "远端桌面的当前窗口需要更高的权限才能操作, 暂时无法使用鼠标键盘, 可以请求对方最小化当前窗口, 或者在连接管理窗口点击提升。为避免这个问题，建议在远端设备上安装本软件。"),
         ("Disconnected", "会话已结束"),
+        ("Keyboard permission required", "需要键盘权限"),
+        ("keyboard_permission_tip", "键盘输入需要 macOS「辅助功能」权限。\n请打开 系统设置 → 隐私与安全性 → 辅助功能，添加并勾选 RustDesk，然后重新连接。\n如果授权后仍无法输入，请完全退出并重新打开 RustDesk。"),
         ("Other", "其他"),
         ("Confirm before closing multiple tabs", "关闭多个标签页时向您确认"),
         ("Keyboard Settings", "键盘设置"),

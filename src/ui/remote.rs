@@ -343,6 +343,16 @@ impl InvokeUiSession for SciterHandler {
         match conn_type {
             ConnType::DEFAULT_CONN => {
                 crate::keyboard::client::start_grab_loop();
+                #[cfg(target_os = "macos")]
+                if !crate::platform::is_process_trusted(false) {
+                    self.msgbox(
+                        "info",
+                        &crate::client::translate("Keyboard permission required".to_string()),
+                        &crate::client::translate("keyboard_permission_tip".to_string()),
+                        "",
+                        false,
+                    );
+                }
             }
             _ => {}
         }

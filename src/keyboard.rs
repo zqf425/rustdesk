@@ -150,8 +150,16 @@ pub mod client {
         if *lock {
             return;
         }
-        super::start_grab_loop();
         *lock = true;
+        super::start_grab_loop();
+    }
+
+    /// Called when the grab loop thread exits with an error (e.g. the macOS
+    /// Accessibility permission was missing, so the event tap could not be
+    /// created). Re-arms the guard so a later `change_grab_status(Run)` can
+    /// retry after the user grants the permission.
+    pub(crate) fn on_grab_failed() {
+        *IS_GRAB_STARTED.lock().unwrap() = false;
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -199,6 +207,13 @@ pub mod client {
 
                 #[cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))]
                 KEYBOARD_HOOKED.store(true, Ordering::SeqCst);
+
+                // The grab loop thread may have died earlier (e.g. EventTapError
+                // when the macOS Accessibility permission was missing at first).
+                // start_grab_loop is idempotent and retries if it failed before,
+                // so keyboard starts working right after the permission is granted.
+                #[cfg(target_os = "macos")]
+                start_grab_loop();
 
                 #[cfg(target_os = "linux")]
                 let had_owner = gs.owner.is_some();
@@ -679,7 +694,8 @@ fn start_grab_loop() {
         #[cfg(target_os = "windows")]
         rdev::set_event_popup(false);
         if let Err(error) = rdev::grab(func) {
-            log::error!("rdev Error: {:?}", error)
+            log::error!("rdev Error: {:?}", error);
+            client::on_grab_failed();
         }
     });
 
